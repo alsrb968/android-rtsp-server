@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+    <data>
+
+    </data>
+    <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/activity_example_rtmp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        <!--    Used to support api 16 but OpenGlView is recommended-->
+        <!--    <SurfaceView-->
+        <!--            android:layout_width="match_parent"-->
+        <!--            android:layout_height="match_parent"-->
+        <!--            android:id="@+id/surfaceView"-->
+        <!--    />-->
+
+        <com.pedro.rtplibrary.view.OpenGlView
+                android:id="@+id/surfaceView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+        <TextView
+                android:id="@+id/tvUrl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="20dp"
+                android:gravity="center"
+                android:textSize="24sp"
+                android:textColor="@color/appColor"
+                android:textColorHint="@color/appColor"
+                app:layout_constraintTop_toTopOf="parent"/>
+
+        <TextView
+                android:id="@+id/tvIp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="20dp"
+                android:gravity="center"
+                android:textSize="24sp"
+                android:textColor="@color/appColor"
+                android:textColorHint="@color/appColor"
+                app:layout_constraintTop_toBottomOf="@id/tvUrl"/>
+
+        <TextView
+                android:id="@+id/tvLogs"
+                android:layout_width="300dp"
+                android:layout_height="500dp"
+                android:layout_marginStart="20dp"
+                android:gravity="bottom"
+                android:scrollbars="vertical"
+                android:textSize="12sp"
+                android:textColor="@color/white"
+                app:layout_constraintTop_toBottomOf="@id/tvIp"
+                app:layout_constraintBottom_toTopOf="@id/bottomLayout"
+                app:layout_constraintStart_toStartOf="parent"/>
+
+        <LinearLayout
+                android:id="@+id/bottomLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_margin="20dp"
+                android:gravity="center"
+                android:weightSum="3"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+            <Button
+                    android:layout_weight="1"
+                    android:text="@string/start_record"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/b_record"
+                    android:layout_marginEnd="5dp"/>
+
+            <Button
+                    android:layout_weight="1"
+                    android:text="@string/start_button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/b_start_stop"
+                    android:layout_marginEnd="5dp"/>
+
+            <Button
+                    android:layout_weight="1"
+                    android:text="@string/switch_camera_button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/switch_camera"/>
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
