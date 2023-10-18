@@ -16,3 +16,5 @@ dependencyResolutionManagement {
 rootProject.name = "android-rtsp-server"
 include ':app'
 include ':rtspserver'
+include ':arduino-hex-upload'
+include ':IntelHexFormatReader'

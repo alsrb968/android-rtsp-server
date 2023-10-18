@@ -13,6 +13,11 @@ import androidx.databinding.DataBindingUtil
 import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.input.video.CameraOpenException
 import com.pedro.rtsp.utils.ConnectCheckerRtsp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kr.co.makeitall.arduino.UsbSerialManager
 import kr.co.makeitall.rtspserver.databinding.ActivityCameraDemoBinding
 import java.io.File
 import java.io.IOException
@@ -25,10 +30,10 @@ class CameraDemoActivity : AppCompatActivity(), ConnectCheckerRtsp, View.OnClick
     private lateinit var binding: ActivityCameraDemoBinding
     private lateinit var rtspServerCamera1: RtspServerCamera1
     private val tcpPacketServer = TcpPacketServer(PACKET_PORT)
+    private lateinit var usbSerialManager: UsbSerialManager
 
     private var currentDateAndTime = ""
     private lateinit var folder: File
-    private var before = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,17 +50,28 @@ class CameraDemoActivity : AppCompatActivity(), ConnectCheckerRtsp, View.OnClick
             tvLogs.movementMethod = ScrollingMovementMethod()
         }
 
+        UsbSerialManager(this@CameraDemoActivity, lifecycle).also {
+            usbSerialManager = it
+        }.addOnUsbReadListener { data ->
+            val str = String(data)
+            Log.i(TAG, "usb rx: $str")
+            tcpPacketServer.send(str)
+            binding.tvLogs.append("usb rx: $str\n")
+        }.addOnStateListener { state ->
+            Log.i(TAG, "state: $state")
+        }.addOnPermissionListener { granted ->
+            Log.i(TAG, "permission: $granted")
+            CoroutineScope(Dispatchers.Default).launch {
+                delay(3000L)
+                usbSerialManager.startRead()
+            }
+        }
+
         tcpPacketServer.start()
         tcpPacketServer.setOnMessageListener { message ->
-            Log.i(TAG, "rx: $message")
-//            before += "$message\n"
-            binding.tvLogs.append("$message\n")
-
-            if (message == "hello") {
-                tcpPacketServer.send("world")
-            } else {
-                tcpPacketServer.send(message)
-            }
+            Log.i(TAG, "tcp rx: $message")
+            binding.tvLogs.append("tcp rx: $message\n")
+            usbSerialManager.writeString("$message\n")
         }
     }
 
