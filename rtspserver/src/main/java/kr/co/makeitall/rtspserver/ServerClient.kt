@@ -1,10 +1,10 @@
 package kr.co.makeitall.rtspserver
 
-import android.util.Log
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtspSender
 import com.pedro.rtsp.rtsp.commands.Method
 import com.pedro.rtsp.utils.ConnectCheckerRtsp
+import timber.log.Timber
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.InputStreamReader
@@ -19,7 +19,6 @@ open class ServerClient(private val socket: Socket, serverIp: String, serverPort
                         videoDisabled: Boolean, audioDisabled: Boolean, user: String?, password: String?,
                         private val listener: ClientListener) : Thread() {
 
-    private val TAG = "Client"
     private val output = BufferedWriter(OutputStreamWriter(socket.getOutputStream()))
     private val input = BufferedReader(InputStreamReader(socket.getInputStream()))
     val rtspSender = RtspSender(connectCheckerRtsp)
@@ -39,7 +38,7 @@ open class ServerClient(private val socket: Socket, serverIp: String, serverPort
 
     override fun run() {
         super.run()
-        Log.i(TAG, "New client ${commandsManager.clientIp}")
+        Timber.i("New client " + commandsManager.clientIp)
         while (!interrupted()) {
             try {
                 val request = commandsManager.getRequest(input)
@@ -50,12 +49,12 @@ open class ServerClient(private val socket: Socket, serverIp: String, serverPort
                     continue
                 }
                 val response = commandsManager.createResponse(request.method, request.text, cSeq)
-                Log.i(TAG, response)
+                Timber.i(response)
                 output.write(response)
                 output.flush()
 
                 if (request.method == Method.PLAY) {
-                    Log.i(TAG, "Protocol ${commandsManager.protocol}")
+                    Timber.i("Protocol " + commandsManager.protocol)
                     rtspSender.setSocketsInfo(commandsManager.protocol, commandsManager.videoServerPorts,
                         commandsManager.audioServerPorts)
                     if (!commandsManager.videoDisabled) {
@@ -77,17 +76,17 @@ open class ServerClient(private val socket: Socket, serverIp: String, serverPort
                     connectCheckerRtsp.onConnectionSuccessRtsp()
                     canSend = true
                 } else if (request.method == Method.TEARDOWN) {
-                    Log.i(TAG, "Client disconnected")
+                    Timber.i("Client disconnected")
                     listener.onDisconnected(this)
                     connectCheckerRtsp.onDisconnectRtsp()
                 }
             } catch (e: SocketException) { // Client has left
-                Log.e(TAG, "Client disconnected", e)
+                Timber.e(e, "Client disconnected")
                 listener.onDisconnected(this)
                 connectCheckerRtsp.onConnectionFailedRtsp(e.message.toString())
                 break
             } catch (e: Exception) {
-                Log.e(TAG, "Unexpected error", e)
+                Timber.e(e, "Unexpected error")
             }
         }
     }

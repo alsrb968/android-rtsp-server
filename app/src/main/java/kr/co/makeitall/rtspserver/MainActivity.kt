@@ -6,24 +6,25 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import kr.co.makeitall.rtspserver.databinding.ActivityMainBinding
+import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Timber.d("onCreate")
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         binding = DataBindingUtil.setContentView(this@MainActivity, R.layout.activity_main)
 
         binding.bCameraDemo.setOnClickListener {
             if (!hasPermissions(this, *PERMISSIONS)) {
-                Log.e(TAG, "Permission denied.")
+                Timber.e("Permission denied.")
                 ActivityCompat.requestPermissions(this, PERMISSIONS, 1)
             } else {
                 startActivity(Intent(this, CameraDemoActivity::class.java))
@@ -43,8 +44,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val TAG = "MainActivity"
-
         private val PERMISSIONS = arrayOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA)
     }
 }

@@ -1,13 +1,13 @@
 package kr.co.makeitall.rtspserver
 
 import android.util.Base64
-import android.util.Log
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.commands.Command
 import com.pedro.rtsp.rtsp.commands.CommandsManager
 import com.pedro.rtsp.rtsp.commands.Method
 import com.pedro.rtsp.rtsp.commands.SdpBody
 import com.pedro.rtsp.utils.RtpConstants
+import timber.log.Timber
 import java.io.BufferedReader
 import java.io.IOException
 import java.net.SocketException
@@ -16,7 +16,6 @@ import java.util.regex.Pattern
 open class ServerCommandManager(private val serverIp: String, private val serverPort: Int,
                                 val clientIp: String) : CommandsManager() {
 
-    private val TAG = "ServerCommandManager"
     var audioPorts = ArrayList<Int>()
     var videoPorts = ArrayList<Int>()
 
@@ -29,10 +28,10 @@ open class ServerCommandManager(private val serverIp: String, private val server
                     val data = "$user:$password"
                     val base64Data = Base64.encodeToString(data.toByteArray(), Base64.DEFAULT)
                     if (base64Data.trim() == auth.trim()) {
-                        Log.i(TAG, "basic auth success")
+                        Timber.i("basic auth success")
                         createDescribe(cSeq) // auth accepted
                     } else {
-                        Log.e(TAG, "basic auth error")
+                        Timber.e("basic auth error")
                         createError(401, cSeq)
                     }
                 } else {
@@ -45,15 +44,15 @@ open class ServerCommandManager(private val serverIp: String, private val server
                     protocol = getProtocol(request, track)
                     return when (protocol) {
                         Protocol.TCP -> {
-                            Log.i(TAG, "TCP")
+                            Timber.i("TCP")
                             createSetup(cSeq, track)
                         }
                         Protocol.UDP -> {
-                            Log.i(TAG, "UDP")
+                            Timber.i("UDP")
                             if (loadPorts(request, track)) createSetup(cSeq, track) else createError(500, cSeq)
                         }
                         else -> {
-                            Log.e(TAG, "Error, Invalid Transport")
+                            Timber.e("Error, Invalid Transport")
                             createError(500, cSeq)
                         }
                     }
@@ -99,19 +98,19 @@ open class ServerCommandManager(private val serverIp: String, private val server
             portsMatcher.group(1)?.toInt()?.let { ports.add(it) }
             portsMatcher.group(2)?.toInt()?.let { ports.add(it) }
         } else {
-            Log.e(TAG, "UDP ports not found")
+            Timber.e("UDP ports not found")
             return false
         }
         if (track == RtpConstants.trackAudio) { //audio ports
             audioPorts.clear()
             audioPorts.add(ports[0])
             audioPorts.add(ports[1])
-            Log.i(TAG, "Audio ports: $audioPorts")
+            Timber.i("Audio ports: $audioPorts")
         } else { //video ports
             videoPorts.clear()
             videoPorts.add(ports[0])
             videoPorts.add(ports[1])
-            Log.i(TAG, "Video ports: $videoPorts")
+            Timber.i("Video ports: $videoPorts")
         }
         return true
     }

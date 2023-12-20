@@ -36,6 +36,8 @@ android {
 dependencies {
     implementation project(':IntelHexFormatReader')
 
+    implementation "com.jakewharton.timber:timber:$timber_version"
+
     implementation 'androidx.appcompat:appcompat:1.4.2'
     implementation 'androidx.annotation:annotation:1.4.0'
     implementation 'com.github.felHR85:UsbSerial:6.1.0'

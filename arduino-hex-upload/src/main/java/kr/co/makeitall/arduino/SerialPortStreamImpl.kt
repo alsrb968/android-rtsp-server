@@ -8,6 +8,7 @@ import com.felhr.usbserial.UsbSerialDevice
 import com.felhr.usbserial.UsbSerialInterface
 import com.felhr.usbserial.UsbSerialInterface.UsbReadCallback
 import kr.co.makeitall.arduino.ArduinoUploader.Help.ISerialPortStream
+import timber.log.Timber
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 
@@ -64,7 +65,7 @@ class SerialPortStreamImpl(
             if (deviceVID != 0x1d6b && devicePID != 0x0001 && devicePID != 0x0002 && devicePID != 0x0003) {
                 // There is a device connected to our Android device. Try to open it as a Serial Port.
                 portNames.add(deviceKey)
-                Log.d("deviceKey:$deviceKey -> $usbDevice")
+                Timber.d("deviceKey:$deviceKey -> $usbDevice")
             }
         }
 
