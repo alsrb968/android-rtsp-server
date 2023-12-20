@@ -37,7 +37,7 @@ class CameraDemoActivity : AppCompatActivity() {
         Timber.d("onCreate")
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         binding = DataBindingUtil.setContentView(this@CameraDemoActivity, R.layout.activity_camera_demo)
-
+        setOrientation()
         folder = File(getExternalFilesDir(null)!!.absolutePath + "/rtmp-rtsp-stream-client-java")
 
         binding.apply {
@@ -79,6 +79,15 @@ class CameraDemoActivity : AppCompatActivity() {
         Timber.d("onDestroy")
         binding.surfaceView.holder.removeCallback(surfaceHolderCallback)
         tcpPacketServer.stop()
+    }
+
+    private fun setOrientation() {
+        val orientation = resources.configuration.orientation
+        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        } else if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        }
     }
 
     private val connectCheckerRtsp = object : ConnectCheckerRtsp {
