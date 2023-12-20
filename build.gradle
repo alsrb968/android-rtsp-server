@@ -9,4 +9,5 @@ ext {
     kotlin_version = '1.6.0'
     lifecycle_version = '2.5.1'
     mockito_version = '4.8.0'
+    timber_version = '5.0.1'
 }

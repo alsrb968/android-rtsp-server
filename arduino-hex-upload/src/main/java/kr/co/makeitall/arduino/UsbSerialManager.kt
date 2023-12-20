@@ -19,6 +19,7 @@ import kotlinx.coroutines.*
 import kr.co.makeitall.arduino.ArduinoUploader.ArduinoSketchUploader
 import kr.co.makeitall.arduino.ArduinoUploader.Config.Arduino
 import kr.co.makeitall.arduino.ArduinoUploader.IArduinoUploaderLogger
+import timber.log.Timber
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.io.StringReader
@@ -112,17 +113,17 @@ class UsbSerialManager(private val context: Context, lifecycle: Lifecycle) : Lif
         lifecycle.addObserver(LifecycleEventObserver { _, event ->
             when (event) {
                 ON_CREATE -> {
-                    Log.i("onCreated")
+                    Timber.i("onCreated")
                     registerUsbHardwareReceiver()
                     updateDevice()
                 }
 
-                ON_RESUME -> Log.i("onResume")
+                ON_RESUME -> Timber.i("onResume")
 
-                ON_PAUSE -> Log.i("onPause")
+                ON_PAUSE -> Timber.i("onPause")
 
                 ON_DESTROY -> {
-                    Log.i("onDestroy")
+                    Timber.i("onDestroy")
                     removeOnStateListener()
                     removeOnPermissionListener()
                     removeOnErrorListener()
@@ -133,7 +134,7 @@ class UsbSerialManager(private val context: Context, lifecycle: Lifecycle) : Lif
                     stopRead()
                 }
 
-                else -> Log.i("else")
+                else -> Timber.i("else")
             }
         })
     }
@@ -172,11 +173,11 @@ class UsbSerialManager(private val context: Context, lifecycle: Lifecycle) : Lif
             when (intent.action) {
                 ACTION_USB_PERMISSION_REQUEST -> {
                     val isGranted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
-                    Log.i("isGranted: $isGranted")
+                    Timber.i("isGranted: $isGranted")
                     intent.getParcelableExtra<UsbDevice>(UsbManager.EXTRA_DEVICE)?.let { device ->
                         if (isGranted) {
                             connection = usbManager.openDevice(device)
-                            Log.i("ready")
+                            Timber.i("ready")
                             // Everything went as expected. Send an intent to MainActivity
                             onStateListener?.onState(USB_STATE_READY)
                         }
@@ -194,7 +195,7 @@ class UsbSerialManager(private val context: Context, lifecycle: Lifecycle) : Lif
                         }
                         onStateListener?.onState(USB_STATE_CONNECTED)
                     }
-                    Log.i("usb attached")
+                    Timber.i("usb attached")
                 }
 
                 UsbManager.ACTION_USB_DEVICE_DETACHED -> {
@@ -203,28 +204,28 @@ class UsbSerialManager(private val context: Context, lifecycle: Lifecycle) : Lif
                         onStateListener?.onState(USB_STATE_DISCONNECTED)
                         updateDevice()
                     }
-                    Log.i("usb detached")
+                    Timber.i("usb detached")
                 }
 
                 UsbManager.ACTION_USB_ACCESSORY_ATTACHED -> {
                     intent.getParcelableExtra<UsbAccessory>(UsbManager.EXTRA_ACCESSORY)?.let { accessory ->
 
                     }
-                    Log.i("accessory attached")
+                    Timber.i("accessory attached")
                 }
 
                 UsbManager.ACTION_USB_ACCESSORY_DETACHED -> {
                     intent.getParcelableExtra<UsbAccessory>(UsbManager.EXTRA_ACCESSORY)?.let { accessory ->
 
                     }
-                    Log.i("accessory detached")
+                    Timber.i("accessory detached")
                 }
             }
         }
     }
 
     private fun registerUsbHardwareReceiver() {
-        Log.i("registerUsbHardwareReceiver")
+        Timber.i("registerUsbHardwareReceiver")
         context.registerReceiver(usbHardwareReceiver,
             IntentFilter().apply {
                 addAction(ACTION_USB_PERMISSION_REQUEST)
@@ -313,24 +314,24 @@ class UsbSerialManager(private val context: Context, lifecycle: Lifecycle) : Lif
     }
 
     fun writeBytes(data: ByteArray) {
-        Log.w("data: ${data.map { "%02X".format(it) }}")
+        Timber.w("data: ${data.map { "%02X".format(it) }}")
         serialOutputStream?.write(data)
     }
 
     fun writeString(data: String) {
-        Log.w("data: $data")
+        Timber.w("data: $data")
         serialOutputStream?.write(data.toByteArray())
     }
 
     fun updateConfig(config: UsbSerialConfig) {
         usbSerialConfig = config
-        Log.i("usbSerialConfig: $usbSerialConfig")
+        Timber.i("usbSerialConfig: $usbSerialConfig")
     }
 
     fun updateBaudRate(baudRate: Int) {
         usbSerialConfig.baudRate = baudRate
         usbSerialDevice?.setBaudRate(baudRate)
-        Log.i("usbSerialConfig: $usbSerialConfig")
+        Timber.i("usbSerialConfig: $usbSerialConfig")
     }
 
     fun isUsbSerialDevice(): Boolean =
@@ -350,7 +351,7 @@ class UsbSerialManager(private val context: Context, lifecycle: Lifecycle) : Lif
         val usbDevices = usbManager.deviceList
         if (usbDevices.isNotEmpty()) {
             for ((_, device) in usbDevices) {
-                Log.d(
+                Timber.d(
                     String.format(
                         "UsbDevice{vendorId: %X, productId: %X, isSupported: %b, deviceClass: %X, deviceSubclass: %X, deviceName: %s}",
                         device.vendorId, device.productId, UsbSerialDevice.isSupported(device),
@@ -374,7 +375,7 @@ class UsbSerialManager(private val context: Context, lifecycle: Lifecycle) : Lif
                 onErrorListener?.onError(UsbSerialException(USB_ERROR_NO_USB))
             }
         } else {
-            Log.e("usbManager returned empty device list.")
+            Timber.e("usbManager returned empty device list.")
             connection = null
             usbDevice = null
             // There is no USB devices connected. Send an intent to MainActivity
@@ -389,10 +390,10 @@ class UsbSerialManager(private val context: Context, lifecycle: Lifecycle) : Lif
     fun startRead(lateStartTimeMillis: Long = 0) {
         CoroutineScope(Dispatchers.Main).launch {
             usbSerialDevice = UsbSerialDevice.createUsbSerialDevice(usbDevice, connection)
-            Log.i("usbSerialDevice: $usbSerialDevice")
+            Timber.i("usbSerialDevice: $usbSerialDevice")
             usbSerialDevice?.let { serial ->
                 if (serial.syncOpen()) {
-                    Log.i("syncOpen() success readJob: $readJob")
+                    Timber.i("syncOpen() success readJob: $readJob")
                     serial.apply {
                         setBaudRate(usbSerialConfig.baudRate)
                         setDataBits(usbSerialConfig.dataBits)
@@ -436,9 +437,9 @@ class UsbSerialManager(private val context: Context, lifecycle: Lifecycle) : Lif
     private suspend fun SerialInputStream.readString(lateStartTimeMillis: Long, callback: (ByteArray) -> Unit) {
         readJob?.let {
             if (it.isActive) {
-                Log.w("readJob is active, cancel it.")
+                Timber.w("readJob is active, cancel it.")
                 it.cancelAndJoin()
-                Log.d("readJob is canceled.")
+                Timber.d("readJob is canceled.")
             }
         }
         val buffer = ByteArray(1024)
@@ -450,14 +451,14 @@ class UsbSerialManager(private val context: Context, lifecycle: Lifecycle) : Lif
                 delay(lateStartTimeMillis) // sleep some. YMMV with different chips.
             }
 
-            Log.i("readJob start")
+            Timber.i("readJob start")
             onStateListener?.onState(USB_STATE_READ_START)
 
             while (true) {
                 val length = read(buffer)
                 if (length > 0) {
                     val data = buffer.copyOfRange(0, length)
-                    Log.d("length: $length, data: ${data.map { "%02X".format(it) }}")
+                    Timber.d("length: $length, data: ${data.map { "%02X".format(it) }}")
                     callback(data)
                 }
                 delay(1)
@@ -468,7 +469,7 @@ class UsbSerialManager(private val context: Context, lifecycle: Lifecycle) : Lif
     fun stopRead() {
         readJob?.let {
             it.cancel()
-            Log.d("readJob is canceled.")
+            Timber.d("readJob is canceled.")
         }
 
         serialInputStream?.close()
@@ -479,7 +480,7 @@ class UsbSerialManager(private val context: Context, lifecycle: Lifecycle) : Lif
         serialInputStream = null
         serialOutputStream = null
 
-        Log.i("end")
+        Timber.i("end")
         onStateListener?.onState(USB_STATE_READ_END)
     }
 
@@ -531,7 +532,7 @@ class UsbSerialManager(private val context: Context, lifecycle: Lifecycle) : Lif
             withContext(Dispatchers.Default) {
                 stopRead()
 
-                Log.i("start upload")
+                Timber.i("start upload")
                 usbDevice?.deviceName?.let { uploader.uploadSketch(hexFileContents, arduinoBoard, it) }
 
                 startRead(2000)

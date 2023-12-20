@@ -1,9 +1,9 @@
 package kr.co.makeitall.rtspserver
 
 import android.media.MediaCodec
-import android.util.Log
 import com.pedro.rtsp.utils.ConnectCheckerRtsp
 import com.pedro.rtsp.utils.RtpConstants
+import timber.log.Timber
 import java.io.IOException
 import java.net.NetworkInterface
 import java.net.ServerSocket
@@ -15,7 +15,6 @@ import java.util.concurrent.TimeUnit
 open class RtspServer(private val connectCheckerRtsp: ConnectCheckerRtsp,
                       val port: Int): ClientListener {
 
-    private val TAG = "RtspServer"
     private var server: ServerSocket? = null
     val serverIp: String get() = getIPAddress()
     var sps: ByteBuffer? = null
@@ -45,7 +44,7 @@ open class RtspServer(private val connectCheckerRtsp: ConnectCheckerRtsp,
                 if (!videoDisabled) {
                     if (sps == null || pps == null) {
                         semaphore.drainPermits()
-                        Log.i(TAG, "waiting for sps and pps")
+                        Timber.i("waiting for sps and pps")
                         semaphore.tryAcquire(5000, TimeUnit.MILLISECONDS)
                     }
                     if (sps == null || pps == null) {
@@ -56,16 +55,16 @@ open class RtspServer(private val connectCheckerRtsp: ConnectCheckerRtsp,
                 server = ServerSocket(port)
             } catch (e: IOException) {
                 connectCheckerRtsp.onConnectionFailedRtsp("Server creation failed")
-                Log.e(TAG, "Error", e)
+                Timber.e(e, "Error")
                 return@Thread
             }
-            Log.i(TAG, "Server started $serverIp:$port")
+            Timber.i("Server started $serverIp:$port")
             while (!Thread.interrupted()) {
                 try {
                     val clientSocket = server?.accept() ?: continue
                     val clientAddress = clientSocket.inetAddress.hostAddress
                     if (clientAddress == null) {
-                        Log.e(TAG, "Unknown client ip, closing clientSocket...")
+                        Timber.e("Unknown client ip, closing clientSocket...")
                         if (!clientSocket.isClosed) clientSocket.close()
                         continue
                     }
@@ -80,11 +79,11 @@ open class RtspServer(private val connectCheckerRtsp: ConnectCheckerRtsp,
                     // server.close called
                     break
                 } catch (e: IOException) {
-                    Log.e(TAG, "Error", e)
+                    Timber.e(e, "Error")
                     continue
                 }
             }
-            Log.i(TAG, "Server finished")
+            Timber.i("Server finished")
         }
         running = true
         thread?.start()

@@ -1,7 +1,7 @@
 package kr.co.makeitall.rtspserver
 
-import android.util.Log
 import kotlinx.coroutines.*
+import timber.log.Timber
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.PrintWriter
@@ -24,6 +24,7 @@ class TcpPacketServer(private val port: Int) {
 
     fun start() = serverScope.launch {
         val serverSocket = ServerSocket(port)
+        Timber.i("Server started: $ipAddress")
         while (isActive) {
             val clientSocket = serverSocket.accept()
             handleClient(clientSocket)
@@ -31,6 +32,8 @@ class TcpPacketServer(private val port: Int) {
     }
 
     fun stop() {
+        Timber.i("Server stopped: $ipAddress")
+        clientSocket?.close()
         serverScope.cancel()
     }
 
@@ -42,18 +45,18 @@ class TcpPacketServer(private val port: Int) {
         try {
             clientSocket.use { socket ->
                 this@TcpPacketServer.clientSocket = socket
-                Log.d(TAG, "Client connected: ${socket.inetAddress}")
+                Timber.d("Client connected: " + socket.inetAddress)
 
                 val buf = CharArray(1024)
                 while (isActive && socket.isConnected) {
                     val len = socket.getReader().read(buf)
                     if (len == -1) {
-                        Log.d(TAG, "Client disconnected: ${socket.inetAddress}")
+                        Timber.d("Client disconnected: " + socket.inetAddress)
                         break
                     }
 
                     val recv = String(buf, 0, len)
-                    Log.i(TAG, "Received message: $len, $recv")
+                    Timber.i("Received message: $len, $recv")
                     CoroutineScope(Dispatchers.Main).launch {
                         onMessageListener?.onMessage(recv)
                     }
@@ -99,8 +102,6 @@ class TcpPacketServer(private val port: Int) {
         .toList()
 
     companion object {
-        private const val TAG = "TcpPacketServer"
-
         private const val VPN_INTERFACE = "tun"
         private const val DEFAULT_IP = "0.0.0.0"
     }
