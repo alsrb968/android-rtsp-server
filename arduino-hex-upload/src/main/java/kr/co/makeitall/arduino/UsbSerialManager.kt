@@ -334,6 +334,8 @@ class UsbSerialManager(private val context: Context, lifecycle: Lifecycle) : Lif
         Timber.i("usbSerialConfig: $usbSerialConfig")
     }
 
+    fun getBaudRate(): Int = usbSerialConfig.baudRate
+
     fun isUsbSerialDevice(): Boolean =
         usbDevice?.let {
             // no usable interfaces
