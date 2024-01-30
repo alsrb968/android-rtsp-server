@@ -53,9 +53,10 @@ class CameraDemoActivity : AppCompatActivity() {
             usbSerialManager = it
         }.addOnUsbReadListener { data ->
             val str = String(data)
-            Timber.i("usb rx: $str")
+            val log = "usb rx: $str(${data.toByteString()}), size: ${data.size}"
+            Timber.i(log)
             tcpPacketServer.send(str)
-            binding.tvLogs.append("usb rx: $str\n")
+            binding.tvLogs.append("$log\n")
         }.addOnStateListener { state ->
             Timber.i("state: $state")
         }.addOnPermissionListener { granted ->
@@ -67,10 +68,12 @@ class CameraDemoActivity : AppCompatActivity() {
         }
 
         tcpPacketServer.start()
-        tcpPacketServer.setOnMessageListener { message ->
-            Timber.i("tcp rx: $message")
-            binding.tvLogs.append("tcp rx: $message\n")
-            usbSerialManager.writeString("$message\n")
+        tcpPacketServer.setOnMessageListener { data ->
+            val str = String(data)
+            val log = "tcp rx: $str(${data.toByteString()}), size: ${data.size}"
+            Timber.i(log)
+            binding.tvLogs.append("$log\n")
+            usbSerialManager.writeBytes(data)
         }
     }
 
@@ -251,5 +254,14 @@ class CameraDemoActivity : AppCompatActivity() {
     companion object {
         private const val RTSP_PORT = 5000
         private const val PACKET_PORT = 5001
+
+        @JvmStatic
+        fun ByteArray.toByteString(): String {
+            val sb = StringBuilder()
+            for (b in this) {
+                sb.append(String.format("%02X ", b))
+            }
+            return sb.toString()
+        }
     }
 }

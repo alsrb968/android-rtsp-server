@@ -1,6 +1,7 @@
 package kr.co.makeitall.rtspserver
 
 import kotlinx.coroutines.*
+import kr.co.makeitall.rtspserver.CameraDemoActivity.Companion.toByteString
 import timber.log.Timber
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -14,7 +15,7 @@ class TcpPacketServer(private val port: Int) {
     private var clientSocket: Socket? = null
 
     fun interface OnMessageListener {
-        fun onMessage(message: String)
+        fun onMessage(data: ByteArray)
     }
 
     private var onMessageListener: OnMessageListener? = null
@@ -29,6 +30,7 @@ class TcpPacketServer(private val port: Int) {
             val clientSocket = serverSocket.accept()
             handleClient(clientSocket)
         }
+        serverSocket.close()
     }
 
     fun stop() {
@@ -55,10 +57,11 @@ class TcpPacketServer(private val port: Int) {
                         break
                     }
 
-                    val recv = String(buf, 0, len)
-                    Timber.i("Received message: $len, $recv")
+                    val data = buf.copyOf(len).map { it.code.toByte() }.toByteArray()
+                    val str = String(data)
+                    Timber.i("Received message: $len, $str(${data.toByteString()})")
                     CoroutineScope(Dispatchers.Main).launch {
-                        onMessageListener?.onMessage(recv)
+                        onMessageListener?.onMessage(data)
                     }
 
 //                    send(recv)
