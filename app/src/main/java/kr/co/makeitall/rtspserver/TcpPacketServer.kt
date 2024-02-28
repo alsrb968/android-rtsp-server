@@ -84,6 +84,10 @@ class TcpPacketServer(private val port: Int) {
         clientSocket?.getWriter()?.println(message)
     }
 
+    fun send(data: ByteArray) = serverScope.launch {
+        clientSocket?.getOutputStream()?.write(data)
+    }
+
     private fun getIPAddress(): String {
         val interfaces: List<NetworkInterface> = NetworkInterface.getNetworkInterfaces().toList()
         val vpnInterfaces = interfaces.filter { it.displayName.contains(VPN_INTERFACE) }

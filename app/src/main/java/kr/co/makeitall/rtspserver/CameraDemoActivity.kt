@@ -55,7 +55,7 @@ class CameraDemoActivity : AppCompatActivity() {
             val str = String(data)
             val log = "usb rx: $str(${data.toByteString()}), size: ${data.size}"
             Timber.i(log)
-            tcpPacketServer.send(str)
+            tcpPacketServer.send(data)
             binding.tvLogs.append("$log\n")
         }.addOnStateListener { state ->
             Timber.i("state: $state")

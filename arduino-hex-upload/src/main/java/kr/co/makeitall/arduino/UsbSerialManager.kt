@@ -413,7 +413,7 @@ class UsbSerialManager(private val context: Context, lifecycle: Lifecycle) : Lif
                         serialOutputStream = serial.outputStream
                     }
 
-                    serialInputStream?.readString(lateStartTimeMillis) {
+                    serialInputStream?.readByteArray(lateStartTimeMillis) {
                         onUsbReadListener?.onRead(it)
                     }
 
@@ -436,7 +436,7 @@ class UsbSerialManager(private val context: Context, lifecycle: Lifecycle) : Lif
         }
     }
 
-    private suspend fun SerialInputStream.readString(lateStartTimeMillis: Long, callback: (ByteArray) -> Unit) {
+    private suspend fun SerialInputStream.readByteArray(lateStartTimeMillis: Long, callback: (ByteArray) -> Unit) {
         readJob?.let {
             if (it.isActive) {
                 Timber.w("readJob is active, cancel it.")
@@ -445,7 +445,7 @@ class UsbSerialManager(private val context: Context, lifecycle: Lifecycle) : Lif
             }
         }
         val buffer = ByteArray(1024)
-        setTimeout(1)
+        setTimeout(3) // 3ms 이상 추가 데이터 없으면 callback 호출
         readJob = CoroutineScope(Dispatchers.IO).launch {
             // Some Arduinos would need some sleep because firmware wait some time to know whether a new sketch is going
             // to be uploaded or not
